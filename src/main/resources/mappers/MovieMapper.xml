@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.mapper.MovieMapper">
+<!-- 실제 mysql과 직결로 연결되는 파일입니다. sql문들을 직접적으로 작성하는 파일입니다. insert, update, delete, select등의 sql문들을 
+직접적으로 입력하여 실행합니다.(movie테이블과 연결) -->
+<sql id="movieColumns">
+		  idx
+		, title
+		, poster_img
+		, description
+		, director
+		, view_cnt
+		, rating
+		, premier_date
+		, premier_yn
+		, delete_yn
+		, insert_time
+		, update_time
+		, delete_time
+	</sql>
+	
+<sql id="search">
+		<if test="searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType !=null and searchType !=''">
+					<choose>
+						<when test="'title'.equals(searchType)">
+							AND title LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<when test="'description'.equals(searchType)">
+							AND description LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<when test="'director'.equals(searchType)">
+							AND director LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+					</choose>
+				</when>
+				<otherwise>
+					AND
+						(
+							   title LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR description LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR director LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+	
+	<insert id="insertMovie" parameterType="MovieDTO">
+		INSERT INTO movie (
+			<include refid="movieColumns" />
+		) VALUES (
+			  #{idx}
+			, #{title}
+			, #{posterImg}
+			, #{description}
+			, #{director}
+			, #{viewCnt}
+			, #{rating}
+			, #{premierDate}
+			, #{premierYn}
+			, 'N'
+			, NOW()
+			, NULL
+			, NULL
+		)
+	</insert>
+	<select id="selectMovieDetail" parameterType="long" resultType="MovieDTO">
+		SELECT
+			<include refid="movieColumns" />
+		FROM
+			movie
+		WHERE
+			delete_yn = 'N'
+		AND
+			idx = #{idx}
+	</select>
+	<update id="updateMovie" parameterType="MovieDTO">
+		UPDATE movie
+		SET
+			  update_time = NOW()
+			, title = #{title}
+			, poster_img = #{posterImg}
+			, description = #{description}
+			, director = #{director}
+			, view_cnt = #{viewCnt}
+			, rating = #{rating}
+			, premier_yn = #{premierYn}
+		WHERE
+			idx = #{idx}
+	</update>
+	<update id="deleteMovie" parameterType="long">
+		UPDATE movie
+		SET
+			  delete_yn = 'Y'
+			, delete_time = NOW()
+		WHERE
+			idx = #{idx}
+	</update>
+	<select id="selectMovieList" parameterType="MovieDTO" resultType="MovieDTO">
+		SELECT
+			<include refid="movieColumns" />
+		FROM
+			movie
+		WHERE
+			delete_yn = 'N' and premier_yn='Y'
+		<include refid="search"/>
+		ORDER BY
+			view_cnt DESC,
+			idx ASC,
+			insert_time DESC
+		<include refid="CommonMapper.paging"/>
+	</select>
+	<select id="selectMovieTotalCount" parameterType="MovieDTO" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			movie
+		WHERE delete_yn = 'N' and premier_yn='Y'
+		<include refid="search"/>
+	</select>
+</mapper>

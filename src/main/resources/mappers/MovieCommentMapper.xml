@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.board.mapper.MovieCommentMapper">
+<!-- 실제 mysql과 직결로 연결되는 파일입니다. sql문들을 직접적으로 작성하는 파일입니다. insert, update, delete, select등의 sql문들을 
+직접적으로 입력하여 실행합니다.(moviecomment테이블과 연결) -->
+	<sql id="movieCommentColumns">
+		  idx
+		, movie_idx
+		, content
+		, writer
+		, rating
+		, delete_yn
+		, insert_time
+		, update_time
+		, delete_time
+	</sql>
+	<insert id="insertMovieComment" parameterType="MovieCommentDTO">
+		INSERT INTO moviecomment (
+			<include refid="movieCommentColumns" />
+		) VALUES (
+			  #{idx}
+			, #{movieIdx}
+			, #{content}
+			, #{writer}
+			, #{rating}
+			, IFNULL(#{deleteYn}, 'N')
+			, NOW()
+			, NULL
+			, NULL
+		)
+	</insert>
+	<select id="selectMovieCommentDetail" parameterType="long" resultType="MovieCommentDTO">
+		SELECT
+			<include refid="movieCommentColumns" />
+		FROM
+			moviecomment
+		WHERE
+			delete_yn = 'N'
+		AND
+			idx = #{idx}
+	</select>
+	<update id="updateMovieComment" parameterType="MovieCommentDTO">
+		UPDATE moviecomment
+		SET
+			  update_time = NOW()
+			, content = #{content}
+			, writer = #{writer}
+			, rating = #{rating}
+		WHERE
+			idx = #{idx}
+	</update>
+	<update id="deleteMovieComment" parameterType="long">
+		UPDATE moviecomment
+		SET
+			  delete_yn = 'Y'
+			, delete_time = NOW()
+		WHERE
+			idx = #{idx}
+	</update>
+	<select id="selectMovieCommentList" parameterType="MovieCommentDTO" resultType="MovieCommentDTO">
+		SELECT
+			<include refid="movieCommentColumns" />
+		FROM
+			moviecomment
+		WHERE
+			delete_yn = 'N'
+		AND
+			movie_idx = #{movieIdx}
+		ORDER BY
+			idx DESC,
+			insert_time DESC
+	</select>
+	<select id="selectMovieCommentTotalCount" parameterType="MovieCommentDTO" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			moviecomment
+		WHERE
+			delete_yn = 'N'
+		AND
+			movie_idx = #{movieIdx}
+	</select>
+
+</mapper>

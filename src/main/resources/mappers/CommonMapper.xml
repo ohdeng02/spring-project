@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommonMapper">
+<!-- 해당 파일은 테이블과 연결하는 파일은 아니지만 반복적으로 사용되는 sql문 쿼리를 저장하여 활용하기 위해 저장해둔 파일입니다.
+따라서 다른 mapper.xml파일에 불러와서 사용할 수 있습니다. -->
+	<sql id="paging">
+		LIMIT
+			#{paginationInfo.firstRecordIndex}, #{recordsPerPage}
+	</sql>
+	
+	<sql id="search">
+		<if test="searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchType !=null and searchType !=''">
+					<choose>
+						<when test="'title'.equals(searchType)">
+							AND title LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<when test="'content'.equals(searchType)">
+							AND content LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+						<when test="'writer'.equals(searchType)">
+							AND writer LIKE CONCAT('%', #{searchKeyword}, '%')
+						</when>
+					</choose>
+				</when>
+				<otherwise>
+					AND
+						(
+							   title LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR content LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR writer LIKE CONCAT('%', #{searchKeyword}, '%')
+						)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+</mapper>
